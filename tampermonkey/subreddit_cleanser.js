@@ -27,16 +27,31 @@
         'antiwork',
     ];
 
-    let blocklist = GM_getValue('blocklist', BLOCKED_SUBREDDITS).map(s => s.toLowerCase());
+    function storageGet(key, defaultValue) {
+        if (typeof GM_getValue !== 'undefined') {
+            return GM_getValue(key, defaultValue);
+        }
+        const val = localStorage.getItem(key);
+        return val ? JSON.parse(val) : defaultValue;
+    }
+
+    function storageSet(key, value) {
+        if (typeof GM_setValue !== 'undefined') {
+            GM_setValue(key, value);
+        } else {
+            localStorage.setItem(key, JSON.stringify(value));
+        }
+    }
+
+    let blocklist = storageGet('blocklist', BLOCKED_SUBREDDITS).map(s => s.toLowerCase());
 
     function addToBlockList(subreddit) {
         let subredditName = subreddit.toLowerCase();
         if (!blocklist.includes(subredditName)) {
             blocklist.push(subredditName);
-            GM_setValue('blocklist', blocklist); // persist in background
+            storageSet('blocklist', blocklist); // persist in background
         }
     }
-
 
     function getSubRedditFromPost(em) {
         const post = em.closest('[data-subreddit], shreddit-post');
@@ -48,19 +63,22 @@
     }
 
     function removePostsAndAds() {
-        // Works for both old and new Reddit layouts
-        const posts = document.querySelectorAll('[data-subreddit], shreddit-post');
+        if (blocklist) {
+            //Works for both old and new Reddit layouts
+            const posts = document.querySelectorAll('[data-subreddit], shreddit-post');
 
-        posts.forEach(post => {
-            // New Reddit
-            const sub = post.getAttribute('subreddit-prefixed-name')?.replace('r/', '')
-                || post.getAttribute('data-subreddit');
+            posts.forEach(post => {
+                // New Reddit
+                const sub = post.getAttribute('subreddit-prefixed-name')?.replace('r/', '')
+                    || post.getAttribute('data-subreddit');
 
-            if (sub && blocklist.includes(sub.toLowerCase())) {
-                post.remove();
-                console.log(`post from ${sub} was removed`);
-            }
-        });
+                if (sub && blocklist.includes(sub.toLowerCase())) {
+                    post.remove();
+                    console.log(`post from ${sub} was removed`);
+                }
+            });
+
+        }
 
         const ads = document.querySelectorAll('shreddit-ad-post');
         ads.forEach(ad => {
