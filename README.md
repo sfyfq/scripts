@@ -2,4 +2,5 @@
 
 ## Tampermonkey
 ### [SubReddit Cleanser](tampermonkey/subreddit_cleanser.js)
-Hide posts from uninteresting subreddits while browsing anonymously. Hides Ads as well. 
+**#ControlledRandomness**
+Hide posts from uninteresting subreddits when browsing anonymously. Hides Ads while in it. 
